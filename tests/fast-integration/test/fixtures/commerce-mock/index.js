@@ -446,6 +446,43 @@ async function revokeCommerceMockCertificate(){
   }
 }
 
+async function revokeSKRCommerceMockCertificate(){
+  let {cert, key} = await getCommerceMockCertFiles()
+   
+  const vs = await waitForVirtualService("mocks", "commerce-mock");
+  const mockHost = vs.spec.hosts[0];
+  const url = mockHost.replace(/(commerce.?)/,'');
+  const gateway = `https://adapter-gateway-mtls.${url}/v1/applications/certificates/revocations`;
+  console.dir("********************************")
+  console.dir(cert.data);
+  console.dir(key.data);
+  console.dir("********************************")
+  const httpsAgent = new https.Agent({
+    rejectUnauthorized: false, // curl -k
+    cert: cert.data,
+    key: key.data
+  });
+
+  axios.defaults.httpsAgent = httpsAgent;
+
+  try {
+    await axios({
+      method: 'post',
+      url: gateway,
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 5000
+    });
+
+    /*let {cert2, key2} = await getCommerceMockCertFiles();
+    console.dir("=========")
+    console.dir(cert2.data);
+    console.dir(key2.data);
+    console.dir("========")*/
+  } catch (err) {
+    throw convertAxiosError(err, "Error during revoking Commerce Mock certificate via Kyma connector service");
+  }
+}
+
 async function ensureCommerceMockWithCompassTestFixture(client, appName, scenarioName, mockNamespace, targetNamespace, withCentralApplicationConnectivity = false) {
   const mockHost = await provisionCommerceMockResources(
     `mp-${appName}`,
@@ -703,6 +740,7 @@ module.exports = {
   checkFunctionResponse,
   renewCommerceMockCertificate,
   revokeCommerceMockCertificate,
+  revokeSKRCommerceMockCertificate,
   checkInClusterEventDelivery,
   checkInClusterEventTracing,
   cleanMockTestFixture,

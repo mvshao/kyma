@@ -20,6 +20,7 @@ const {
   ensureCommerceMockWithCompassTestFixture,
   checkFunctionResponse,
   sendEventAndCheckResponse,
+  revokeSKRCommerceMockCertificate,
   deleteMockTestFixture,
 } = require("../test/fixtures/commerce-mock");
 const {
@@ -174,6 +175,26 @@ describe("SKR test", function () {
   it("order.created.v1 event should trigger the lastorder function", async function () {
     await sendEventAndCheckResponse();
   });
+
+  // renew certificate
+  it("CommerceMock should renew it's certificate", async function () {
+    await renewCommerceMockCertificate();
+  });
+  // call lambda and succeed
+  it("order.created.v1 event should trigger the lastorder function", async function () {
+    await sendEventAndCheckResponse();
+  });
+
+  // revoke certificate
+  it("should revoke Commerce Mock certificate", async function () {
+    await revokeSKRCommerceMockCertificate();
+  });
+
+  /* TODO why is this passing, after revoking the cert
+  // call lambda and FAIL
+  it("order.created.v1 event should trigger the lastorder function", async function () {
+    await sendEventAndCheckResponse();
+  });*/
 
   it("Deletes the resources that have been created", async function () {
     await deleteMockTestFixture("mocks", testNS);
